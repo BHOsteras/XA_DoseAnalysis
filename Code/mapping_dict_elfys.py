@@ -37,7 +37,7 @@ def get_elfys_mapping_dict():
 
     mapping = { 'RGA Cor Ablasjon SVT (int.)'                   : 'RGA Cor Ablasjon SVT (int.) m og u 3D',
                 'RGA Cor Ablasjon SVT m 3D (int.)'              : 'RGA Cor Ablasjon SVT (int.) m og u 3D',
-                'RGA Cor Ablasjon VT m 3D (int.)'               : 'RGA Cor Ablasjon VT (int.) m 3D',
+                'RGA Cor Ablasjon VT m 3D (int.) & ~RGA Cor Ablasjon SVT'  : 'RGA Cor Ablasjon VT (int.) m 3D',
             
                 'RGA Cor Ablasjon Atrieflimmer (int.)'          : 'RGA Cor Ablasjon Atrieflimmer (int.) m og u 3D',             # Utgått?
                 'RGA Cor Ablasjon Atrieflimmer med 3D (int.)'   : 'RGA Cor Ablasjon Atrieflimmer (int.) m og u 3D',
