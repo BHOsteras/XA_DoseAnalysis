@@ -3,3 +3,4 @@ Figures/
 Reports/
 *.code-workspace
 *.txt
+.venv/
