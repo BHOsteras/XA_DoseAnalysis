@@ -4,13 +4,13 @@ This module contains a functions for returning a mapping dictionary to facilitat
 The 'Mapped Procedures' column is used to organize the description into useful categories, make relevant plots, etc.
 """
 
-def get_PCI_mapping_dict():
+def get_ped_card_mapping_dict():
     """
-    Here the user can hardcode the mapping dictionary for lab39 procedures:
+    Here the user can hardcode the mapping dictionary for Electrophysiology procedures:
 
     If the dataset includes procedure names from the era before IDS7 PACS, pass the argument True to the function.
     
-    In the PCI labs, the description column (column: 'Beskrivelse') can potentially contain
+    In the Electrophysiology department, the description column (column: 'Beskrivelse') can potentially contain
     several different procedure codes. These codes have been concatinated into one string with each procedure 
     separated by a comma. This results in multiple different strings representing the same procedure, 
     with only minor variations. For instance if ultrasound was used, the string will contain ', UL ...'.
@@ -35,13 +35,5 @@ def get_PCI_mapping_dict():
     To change or add to the mapping of procedures, edit the 'mapping' dictionary below.
     """
 
-    mapping = { 'RGV Cor Mitraclip (int.)'                  : 'Mitraclip',
-                'RGA Cor TAVI (int.)'                       : 'TAVI',
-                'RGA Cor Koronarangiografi (int.) & ~RGA Cor PCI & ~RGA Cor PTSMA & ~RGA Cor ECMO & ~RGV Cor PFO & ~RGA Cor TAVI'   
-                                                            : 'Coronary angiography',
-                'RGA Cor PCI & ~RGA Cor ECMO & ~RGA Cor TAVI'   
-                                                            : 'PCI',
-                'RGA Cor PTSMA (int.) & ~RGA Cor PCI'       : 'PTSMA',
-                'RGV Cor PFO (int.)'                        : 'PFO'           
-            }
+    mapping = { 'R'                   : 'Pediatric Cardiology',}
     return mapping

@@ -1,0 +1,14 @@
+Metadata-Version: 2.4
+Name: xa-doseanalysis
+Version: 0.1.0
+Summary: Add your description here
+Requires-Python: >=3.14
+Description-Content-Type: text/markdown
+Requires-Dist: ipykernel>=7.1.0
+Requires-Dist: numpy>=2.4.1
+Requires-Dist: pandas>=3.0.0
+Requires-Dist: seaborn>=0.13.2
+Requires-Dist: openpyxl>=3.0.0
+
+# XA_DoseAnalysis
+Code to analyse Radiation Dose and DICOM metadata from intervenstional procedures
