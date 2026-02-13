@@ -220,7 +220,8 @@ def plot_representative_dose(data, procedure, y_max=20, save=False):
     sns.boxplot(x='Modality Room', y='DAP Total (Gy*cm2)', data=data, ax=ax)
     print('Reporting doses for ' + procedure + ':')
     print('\n')
-    bh_report.print_summary(data[data['Mapped Procedures'] == procedure], True)
+    #bh_report.print_summary(data[data['Mapped Procedures'] == procedure], True)
+    bh_report.print_summary_inc_cak(data[data['Mapped Procedures'] == procedure], True)
     print('\n')
     bh_report.print_summary_per_lab(data[data['Mapped Procedures'] == procedure], True)
     # Reduce the range of the y-axis:

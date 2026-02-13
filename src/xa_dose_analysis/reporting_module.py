@@ -94,6 +94,28 @@ def print_summary(data, ci = False):
             'Range (' + str(round(data['DAP Total (Gy*cm2)'].min(), 1)) + \
             ' - ' + str(round(data['DAP Total (Gy*cm2)'].max(), 1)) + ').')
 
+def print_summary_inc_cak(data, ci = False):
+    if ci:
+        lci, uci = _calc_ci(data['DAP Total (Gy*cm2)'])
+
+    print('Alle: n = {:4}'.format(len(data)) + ', DAP: Median - ' + str(round(data['DAP Total (Gy*cm2)'].median(), 1)) + ',' +\
+            (' 95% CI: [' + str(round(lci, 2)) + ' - ' + str(round(uci, 2)) + ']' if ci else '') + \
+            # 25 th percentile:
+            ' IQR [' + str(round(data['DAP Total (Gy*cm2)'].quantile(0.25), 1)) + \
+            ' - ' + str(round(data['DAP Total (Gy*cm2)'].quantile(0.75), 1)) + '], ' + \
+            'Range (' + str(round(data['DAP Total (Gy*cm2)'].min(), 1)) + \
+            ' - ' + str(round(data['DAP Total (Gy*cm2)'].max(), 1)) + ').')
+    if ci:
+        lci, uci = _calc_ci(data['CAK (mGy)'])
+
+    print('Alle: n = {:4}'.format(len(data)) + ', CAK: Median - ' + str(round(data['CAK (mGy)'].median(), 1)) + ',' +\
+            (' 95% CI: [' + str(round(lci, 2)) + ' - ' + str(round(uci, 2)) + ']' if ci else '') + \
+            # 25 th percentile:
+            ' IQR [' + str(round(data['CAK (mGy)'].quantile(0.25), 1)) + \
+            ' - ' + str(round(data['CAK (mGy)'].quantile(0.75), 1)) + '], ' + \
+            'Range (' + str(round(data['CAK (mGy)'].min(), 1)) + \
+            ' - ' + str(round(data['CAK (mGy)'].max(), 1)) + ').')
+
 def report_exposure_time_all(data, ci = False):
     if ci:
         lci, uci = _calc_ci(data['F+A Time (s)'])
