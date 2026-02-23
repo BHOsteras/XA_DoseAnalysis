@@ -48,7 +48,7 @@ def get_elfys_mapping_dict():
 
                 'RGA Cor Ablasjon Atrieflutter (int.) & ~Atrieflimmer' : 'RGA Cor Ablasjon Atrieflutter (int.) m og u 3D',
 
-                'RGA Cor Elfys SVT (int.)'                      : 'RGA Cor Elfys VT el. SVT (int.)',
+                'RGA Cor Elfys SVT (int.) & ~Ablasjon & ~Atrieflutter'                      : 'RGA Cor Elfys VT el. SVT (int.)',
                 'RGA Cor Elfys VT (int.)'                       : 'RGA Cor Elfys VT el. SVT (int.)',
 
                 'RGA Cor CRT-D (int.)'                          : 'RGA Cor CRT-D (int.) ink. CRT-P',
