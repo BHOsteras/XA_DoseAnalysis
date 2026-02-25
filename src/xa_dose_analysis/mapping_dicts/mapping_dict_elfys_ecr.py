@@ -48,8 +48,8 @@ def get_elfys_mapping_dict():
 
                 'RGA Cor Ablasjon Atrieflutter (int.) & ~Atrieflimmer' : 'Ablation',
 
-                'RGA Cor Elfys SVT (int.)'                      : 'Electrophysiology',
-                'RGA Cor Elfys VT (int.)'                       : 'Electrophysiology',
+                'RGA Cor Elfys SVT (int.)'                      : 'Ablation',
+                'RGA Cor Elfys VT (int.)'                       : 'Ablation',
 
                 'RGA Cor CRT-D (int.)'                          : 'Pacemaker',
                 'RGA Cor CRT-P (int.)'                          : 'Pacemaker',
