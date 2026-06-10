@@ -12,6 +12,7 @@ import pandas as pd
 
 from .columns import DT, IDS7, IN_DT, IN_IDS7
 from .io import assert_no_personal_id, validate_columns
+from .quality import QualityReport
 
 logger = logging.getLogger(__name__)
 
@@ -263,6 +264,7 @@ def clean_all(
     df_dt: pd.DataFrame,
     room_aliases: dict[str, list[str]] | None = None,
     manual_replace: bool = False,
+    quality: "QualityReport | None" = None,
 ) -> tuple[pd.DataFrame, pd.DataFrame]:
     """Run the full cleaning sequence and return the cleaned (IDS7, DoseTrack) pair.
 
@@ -270,21 +272,50 @@ def clean_all(
     IDS7 filters (booking time, cancelled, phantom, accession format),
     Siemens accession conversion, cross-flagging of accession numbers and
     duplicate-accession correction.
+
+    Pass a :class:`~xa_dose_analysis.quality.QualityReport` as ``quality`` to
+    have its counters filled in along the way.
     """
     assert_no_personal_id(df_ids7)
+    if quality is None:
+        quality = QualityReport()  # throwaway; keeps the bookkeeping below simple
 
     if room_aliases:
         df_ids7 = standardize_rooms(df_ids7, IDS7.ROOM, room_aliases)
         df_dt = standardize_rooms(df_dt, DT.ROOM, room_aliases)
 
+    n_before = len(df_ids7)
     df_ids7 = filter_missing_booking_time(df_ids7)
-    df_ids7 = filter_cancelled(df_ids7)
-    df_ids7 = filter_phantom(df_ids7)
-    df_ids7 = filter_valid_accession_format(df_ids7)
+    quality.missing_booking_time_removed = n_before - len(df_ids7)
 
+    n_before = len(df_ids7)
+    df_ids7 = filter_cancelled(df_ids7)
+    quality.cancelled_removed = n_before - len(df_ids7)
+
+    n_before = len(df_ids7)
+    df_ids7 = filter_phantom(df_ids7)
+    quality.phantom_removed = n_before - len(df_ids7)
+
+    n_before = len(df_ids7)
+    accessions_before = set(df_ids7[IDS7.ACCESSION].dropna())
+    df_ids7 = filter_valid_accession_format(df_ids7)
+    quality.invalid_accession_removed = n_before - len(df_ids7)
+    quality.invalid_accessions = sorted(accessions_before - set(df_ids7[IDS7.ACCESSION]))
+
+    quality.siemens_accessions_converted = int(df_dt[DT.ACCESSION].str.match(OLD_SIEMENS_FORMAT).sum())
     df_dt = convert_old_siemens_accessions(df_dt)
+
     df_ids7 = flag_accessions_in_dosetrack(df_ids7, df_dt)
+
+    accession_before_resolve = df_ids7[IDS7.ACCESSION]
     df_ids7 = resolve_duplicate_accessions(df_ids7, df_dt, manual_replace=manual_replace)
+    quality.duplicate_accessions_corrected = int((accession_before_resolve != df_ids7[IDS7.ACCESSION]).sum())
+
     df_dt = flag_accessions_in_ids7(df_dt, df_ids7)
+
+    quality.ids7_accessions = df_ids7[IDS7.ACCESSION].nunique()
+    quality.ids7_accessions_not_in_dt = df_ids7.loc[~df_ids7[IN_DT], IDS7.ACCESSION].nunique()
+    quality.dt_accessions = df_dt[DT.ACCESSION].nunique()
+    quality.dt_accessions_not_in_ids7 = df_dt.loc[~df_dt[IN_IDS7], DT.ACCESSION].nunique()
 
     return df_ids7, df_dt
