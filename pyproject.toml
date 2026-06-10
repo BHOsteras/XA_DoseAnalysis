@@ -29,15 +29,11 @@ where = ["src"]
 [tool.ruff]
 line-length = 110
 src = ["src", "tests"]
-# Legacy code kept only until the refactor is verified (Phase 7) and the old
-# notebooks archived as reference; not linted.
 extend-exclude = [
-    "notebooks/script_*.ipynb",
+    # Archived pre-refactor notebooks, kept as a historical record:
     "notebooks/archive",
-    "src/xa_dose_analysis/dt_ids7_export_module.py",
-    "src/xa_dose_analysis/mapping_module.py",
-    "src/xa_dose_analysis/plot_module.py",
-    "src/xa_dose_analysis/reporting_module.py",
+    # Hand-maintained mapping dictionaries: the long criteria strings are
+    # data, not code worth reformatting:
     "src/xa_dose_analysis/mapping_dicts",
 ]
 
