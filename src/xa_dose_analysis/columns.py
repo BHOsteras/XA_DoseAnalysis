@@ -102,6 +102,7 @@ class IDS7:
 
 # Columns created by this package:
 MAPPED_PROCEDURE = "Mapped Procedures"
+UNMAPPED = "Unmapped"  # value in MAPPED_PROCEDURE for rows no mapping rule matched
 IN_DT = "Henvisning_i_dt"
 IN_IDS7 = "Henvisning_i_ids7"
 SOURCE_FILE = "Source_File"
