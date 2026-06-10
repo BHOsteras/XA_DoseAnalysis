@@ -53,6 +53,11 @@ def load_dataset(
     (``<data_root>/<subfolder>/<year>``); pass ``ids7_path``/``dt_path`` to
     read other folders or single Excel files instead.
 
+    The DoseTrack data may be procedure level (Serienivå) or exposure level
+    (Eksponeringsnivå) — it is reduced to ``Ordinal == 1`` either way. If the
+    configured procedure-level folder does not exist, the exposure-level
+    folder is used instead.
+
     ``manual_replace=True`` lets you resolve ambiguous duplicate accession
     numbers interactively (see
     :func:`xa_dose_analysis.cleaning.resolve_duplicate_accessions`).
@@ -63,7 +68,7 @@ def load_dataset(
     quality.ids7_rows_read = len(df_ids7)
 
     df_dt_raw = load_dosetrack(
-        dt_path if dt_path is not None else cfg.dosetrack_folder(year), procedure_level=False
+        dt_path if dt_path is not None else _resolve_dosetrack_folder(cfg, year), procedure_level=False
     )
     quality.dt_rows_read = len(df_dt_raw)
     df_dt = load_dosetrack_procedure_level(df_dt_raw)
@@ -81,6 +86,32 @@ def load_dataset(
     quality.merged_procedures = len(merged)
 
     return Dataset(ids7=df_ids7, dosetrack=df_dt, merged=merged, quality=quality)
+
+
+def _resolve_dosetrack_folder(cfg: Config, year: str | int | None) -> Path:
+    """The folder to read DoseTrack data from.
+
+    Prefers the configured procedure-level folder (Serienivå); when it does
+    not exist, falls back to the exposure-level folder (Eksponeringsnivå),
+    which works just as well for procedure-level analysis — the files are
+    only bigger.
+    """
+    procedure_folder = cfg.dosetrack_folder(year)
+    if procedure_folder.exists():
+        return procedure_folder
+
+    exposure_folder = cfg.exposure_folder(year)
+    if exposure_folder.exists():
+        logger.info(
+            "No procedure-level DoseTrack folder at %s; using exposure-level data from %s.",
+            procedure_folder,
+            exposure_folder,
+        )
+        return exposure_folder
+
+    raise FileNotFoundError(
+        f"No DoseTrack data found: neither {procedure_folder} nor {exposure_folder} exists."
+    )
 
 
 def load_dosetrack_procedure_level(df_dt_raw: pd.DataFrame) -> pd.DataFrame:

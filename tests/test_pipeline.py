@@ -80,6 +80,23 @@ def test_load_dataset_quality_counters(ds):
     assert "Merged procedures" in str(q)
 
 
+def test_load_dataset_falls_back_to_exposure_folder(cfg, tmp_path):
+    """Only exposure-level data exists -> it is used for procedure-level analysis."""
+    import dataclasses
+    import shutil
+
+    shutil.rmtree(tmp_path / "DT")
+    ds = pipeline.load_dataset(cfg, year=2025)
+    assert not ds.merged.empty
+    # The exposure rows (Ordinal > 1) were filtered out as usual:
+    assert ds.quality.dt_exposure_rows_removed == 2
+
+    # With neither folder present the error names both candidates:
+    shutil.rmtree(tmp_path / "EXP")
+    with pytest.raises(FileNotFoundError, match="neither .* nor"):
+        pipeline.load_dataset(dataclasses.replace(cfg), year=2025)
+
+
 def test_load_dataset_with_explicit_paths(cfg, tmp_path):
     ds = pipeline.load_dataset(
         cfg,
