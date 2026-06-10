@@ -20,6 +20,9 @@ default = "/run/media/bhosteras/PRIVATE_USB/Refaktor test"
 ids7_subfolder = "IDS7"                            # <data_root>/IDS7/<year>/
 dosetrack_subfolder = "DoseTrack - Serienivå"      # procedure-level exports
 exposure_subfolder = "DoseTrack - Eksponeringsnivå"  # exposure-level exports
+# Procedure-level analyses use the dosetrack_subfolder when it exists and
+# otherwise fall back to the exposure_subfolder (either works; the
+# exposure-level files are just bigger).
 
 # Room-name standardization: standard name = list of variants seen in the data.
 # Applied to both the IDS7 'Rom/modalitet (RIS)' and the DoseTrack 'Room' column.
