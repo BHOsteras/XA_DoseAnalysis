@@ -45,7 +45,9 @@ def read_excel_files(path: str | Path) -> pd.DataFrame:
     frames = []
     for file in files:
         logger.info("Reading %s", file)
-        df = pd.read_excel(file)
+        # The calamine engine ignores cell styling; openpyxl chokes on the
+        # non-standard fill styles in IDS7 exports ("Fill() takes no arguments").
+        df = pd.read_excel(file, engine="calamine")
         df[SOURCE_FILE] = file.name
         frames.append(df)
 
