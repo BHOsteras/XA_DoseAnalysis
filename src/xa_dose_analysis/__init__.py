@@ -20,6 +20,7 @@ Typical use in a notebook:
 from .cleaning import clean_all
 from .columns import DT, IDS7, MAPPED_PROCEDURE, UNMAPPED
 from .config import AnalysisConfig, Config, ProcedureConfig, load_config
+from .drl import compare_with_drl
 from .io import load_dosetrack, load_ids7, read_excel_files
 from .logging_utils import setup_logging
 from .mapping import MAPPING_REGISTRY, get_mapping, map_procedures
@@ -44,6 +45,7 @@ from .reporting import (
     print_summary,
     summary_by_procedure,
 )
+from .trends import plot_trend, trend_table
 
 __all__ = [
     "DT",
@@ -57,6 +59,7 @@ __all__ = [
     "ProcedureConfig",
     "QualityReport",
     "clean_all",
+    "compare_with_drl",
     "export_examination_codes",
     "export_summary",
     "filter_exposures_for_procedure",
@@ -72,9 +75,11 @@ __all__ = [
     "plot_representative_dose",
     "plot_representative_dose_by_procedure",
     "plot_representative_doses",
+    "plot_trend",
     "print_summary",
     "read_excel_files",
     "select_analysis",
     "setup_logging",
     "summary_by_procedure",
+    "trend_table",
 ]
