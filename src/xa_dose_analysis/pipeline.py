@@ -40,23 +40,28 @@ class Dataset:
     quality: QualityReport
 
 
+YearSpec = str | int | list | tuple | None
+"""One year (2025), several ([2023, 2024, 2025]) or None for every year present."""
+
+
 def load_dataset(
     cfg: Config,
-    year: str | int | None = None,
+    year: YearSpec = None,
     ids7_path: str | Path | None = None,
     dt_path: str | Path | None = None,
     manual_replace: bool = False,
 ) -> Dataset:
     """Load, clean and merge the IDS7 and DoseTrack data for one period.
 
-    By default the data is read from the configured folders
-    (``<data_root>/<subfolder>/<year>``); pass ``ids7_path``/``dt_path`` to
-    read other folders or single Excel files instead.
+    ``year`` may be a single year (``2025``), a list of years
+    (``[2023, 2024, 2025]``) or ``None``, which reads every year folder under
+    the configured data folders. Pass ``ids7_path``/``dt_path`` to read other
+    folders or single Excel files instead.
 
     The DoseTrack data may be procedure level (Serienivå) or exposure level
     (Eksponeringsnivå) — it is reduced to ``Ordinal == 1`` either way. If the
     configured procedure-level folder does not exist, the exposure-level
-    folder is used instead.
+    folder is used instead (per year).
 
     ``manual_replace=True`` lets you resolve ambiguous duplicate accession
     numbers interactively (see
@@ -64,12 +69,14 @@ def load_dataset(
     """
     quality = QualityReport()
 
-    df_ids7 = load_ids7(ids7_path if ids7_path is not None else cfg.ids7_folder(year))
+    df_ids7 = load_ids7(ids7_path if ids7_path is not None else _per_year(cfg.ids7_folder, year))
     quality.ids7_rows_read = len(df_ids7)
 
-    df_dt_raw = load_dosetrack(
-        dt_path if dt_path is not None else _resolve_dosetrack_folder(cfg, year), procedure_level=False
-    )
+    if dt_path is not None:
+        dt_source = dt_path
+    else:
+        dt_source = _per_year(lambda y: _resolve_dosetrack_folder(cfg, y), year)
+    df_dt_raw = load_dosetrack(dt_source, procedure_level=False)
     quality.dt_rows_read = len(df_dt_raw)
     df_dt = load_dosetrack_procedure_level(df_dt_raw)
     quality.dt_exposure_rows_removed = len(df_dt_raw) - len(df_dt)
@@ -86,6 +93,13 @@ def load_dataset(
     quality.merged_procedures = len(merged)
 
     return Dataset(ids7=df_ids7, dosetrack=df_dt, merged=merged, quality=quality)
+
+
+def _per_year(folder_fn, year: YearSpec) -> Path | list[Path]:
+    """Apply a folder lookup to a year spec (single year, list of years, or None)."""
+    if year is None or isinstance(year, str | int):
+        return folder_fn(year)
+    return [folder_fn(y) for y in year]
 
 
 def _resolve_dosetrack_folder(cfg: Config, year: str | int | None) -> Path:
@@ -150,24 +164,37 @@ def select_analysis(ds: Dataset, cfg: Config, name: str) -> pd.DataFrame:
 
 def load_exposure_data(
     cfg: Config,
-    year: str | int | None = None,
+    year: YearSpec = None,
     path: str | Path | None = None,
     cache: bool = True,
 ) -> pd.DataFrame:
     """Load exposure-level DoseTrack data (one row per exposure).
 
+    ``year`` may be a single year, a list of years or ``None`` (all years).
     These exports are large, so the combined DataFrame is cached as a pickle
-    file next to the Excel files and reused on later calls. Pass
+    file in the exposure data folder and reused on later calls. Pass
     ``cache=False`` to force a re-read (e.g. after new files were added).
     """
-    folder = Path(path) if path is not None else cfg.exposure_folder(year)
-    cache_file = folder / f"_cache_exposure_{year if year is not None else 'all'}.pkl"
+    if path is not None:
+        source = Path(path)
+        cache_dir = source if source.is_dir() else source.parent
+    else:
+        source = _per_year(cfg.exposure_folder, year)
+        cache_dir = cfg.exposure_folder()
+
+    if year is None:
+        year_tag = "all"
+    elif isinstance(year, list | tuple):
+        year_tag = "-".join(str(y) for y in year)
+    else:
+        year_tag = str(year)
+    cache_file = cache_dir / f"_cache_exposure_{year_tag}.pkl"
 
     if cache and cache_file.is_file():
         logger.info("Loading cached exposure data from %s", cache_file)
         return pd.read_pickle(cache_file)
 
-    df = load_dosetrack(folder, procedure_level=False)
+    df = load_dosetrack(source, procedure_level=False)
     try:
         df.to_pickle(cache_file)
         logger.info("Cached exposure data to %s", cache_file)

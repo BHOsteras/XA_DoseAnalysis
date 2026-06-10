@@ -12,6 +12,7 @@ they normalize the data so the rest of the pipeline can rely on it:
 """
 
 import logging
+from collections.abc import Iterable
 from pathlib import Path
 
 import pandas as pd
@@ -20,27 +21,37 @@ from .columns import DT, IDS7, SOURCE_FILE
 
 logger = logging.getLogger(__name__)
 
+PathLike = str | Path
+Source = PathLike | Iterable[PathLike]
+
 
 class MissingColumnsError(ValueError):
     """Raised when a required column is missing from an imported dataset."""
 
 
-def read_excel_files(path: str | Path) -> pd.DataFrame:
-    """Read one Excel file, or every Excel file in a folder tree, into one DataFrame.
+def read_excel_files(path: Source) -> pd.DataFrame:
+    """Read Excel files into one DataFrame.
+
+    ``path`` may be a single file, a folder (every ``.xlsx`` in its tree is
+    read), or a list of files/folders (e.g. several year folders).
 
     A ``Source_File`` column is added so each row can be traced back to the
     file it came from.
     """
-    path = Path(path)
-    if path.is_file():
-        files = [path]
-    elif path.is_dir():
-        files = sorted(path.rglob("*.xlsx"))
-    else:
-        raise FileNotFoundError(f"No such file or folder: {path}")
+    paths = [Path(path)] if isinstance(path, PathLike) else [Path(p) for p in path]
+
+    files: list[Path] = []
+    for p in paths:
+        if p.is_file():
+            files.append(p)
+        elif p.is_dir():
+            # Skip Excel lock files (~$...) left behind by open workbooks:
+            files.extend(sorted(f for f in p.rglob("*.xlsx") if not f.name.startswith("~$")))
+        else:
+            raise FileNotFoundError(f"No such file or folder: {p}")
 
     if not files:
-        raise FileNotFoundError(f"No .xlsx files found under {path}")
+        raise FileNotFoundError(f"No .xlsx files found under {', '.join(str(p) for p in paths)}")
 
     frames = []
     for file in files:
@@ -52,11 +63,16 @@ def read_excel_files(path: str | Path) -> pd.DataFrame:
         frames.append(df)
 
     combined = pd.concat(frames, ignore_index=True)
-    logger.info("Read %d rows from %d file(s) under %s", len(combined), len(files), path)
+    logger.info(
+        "Read %d rows from %d file(s) under %s",
+        len(combined),
+        len(files),
+        ", ".join(str(p) for p in paths),
+    )
     return combined
 
 
-def load_ids7(path: str | Path) -> pd.DataFrame:
+def load_ids7(path: Source) -> pd.DataFrame:
     """Load IDS7 Excel export(s) and prepare them for the pipeline.
 
     Drops pure UI columns, converts the accession column to string and raises
@@ -76,7 +92,7 @@ def load_ids7(path: str | Path) -> pd.DataFrame:
     return df
 
 
-def load_dosetrack(path: str | Path, procedure_level: bool = True) -> pd.DataFrame:
+def load_dosetrack(path: Source, procedure_level: bool = True) -> pd.DataFrame:
     """Load DoseTrack Excel export(s) and prepare them for the pipeline.
 
     Converts the accession column to string. If ``procedure_level`` is True

@@ -55,11 +55,12 @@ representative_doses = [
         "Boxplots and summary statistics of DAP/CAK/exposure time per procedure and lab.\n"
         "\n"
         "Set `ANALYSIS` to one of the analyses in `config.toml` "
-        "(`pci`, `elfys`, `radiology`, `dsa`, `pediatric`) and `YEAR` to the year to analyse "
-        "(`None` reads every year under the data folders)."
+        "(`pci`, `elfys`, `radiology`, `dsa`, `pediatric`) and `YEAR` to the year to analyse — "
+        "a single year (`2025`), a list (`[2023, 2024, 2025]`), or `None` to read every year "
+        "under the data folders."
     ),
     code(SETUP),
-    code('ANALYSIS = "pci"\nYEAR = 2025'),
+    code('ANALYSIS = "pci"\nYEAR = 2025  # a single year, a list like [2023, 2024], or None for all years'),
     code(
         "# Read, clean and merge the IDS7 and DoseTrack exports:\n"
         "ds = xa.load_dataset(cfg, year=YEAR)\n"

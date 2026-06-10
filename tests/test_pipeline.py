@@ -80,6 +80,25 @@ def test_load_dataset_quality_counters(ds):
     assert "Merged procedures" in str(q)
 
 
+def test_load_dataset_multiple_years(cfg, tmp_path, ids7_df, dt_df):
+    """year accepts a list of years; the year folders are read together."""
+    (tmp_path / "IDS7" / "2024").mkdir()
+    (tmp_path / "DT" / "2024").mkdir()
+    ids7_df.to_excel(tmp_path / "IDS7" / "2024" / "ids7.xlsx", index=False)
+    dt_df.to_excel(tmp_path / "DT" / "2024" / "dt.xlsx", index=False)
+
+    ds = pipeline.load_dataset(cfg, year=[2024, 2025])
+    assert ds.quality.ids7_rows_read == 2 * 12
+    assert ds.quality.dt_rows_read == 2 * 8
+
+
+def test_load_dataset_all_years_when_year_omitted(cfg):
+    """year=None reads every year folder under the data folders."""
+    ds = pipeline.load_dataset(cfg)
+    assert ds.quality.ids7_rows_read == 12
+    assert not ds.merged.empty
+
+
 def test_load_dataset_falls_back_to_exposure_folder(cfg, tmp_path):
     """Only exposure-level data exists -> it is used for procedure-level analysis."""
     import dataclasses
@@ -123,7 +142,7 @@ def test_select_analysis_age_filter(ds, cfg):
 
 def test_load_exposure_data_caches(cfg, tmp_path, caplog):
     df1 = pipeline.load_exposure_data(cfg, year=2025)
-    assert (tmp_path / "EXP" / "2025" / "_cache_exposure_2025.pkl").is_file()
+    assert (tmp_path / "EXP" / "_cache_exposure_2025.pkl").is_file()
     df2 = pipeline.load_exposure_data(cfg, year=2025)
     assert len(df1) == len(df2)
 
