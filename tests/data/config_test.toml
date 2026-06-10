@@ -1,0 +1,30 @@
+# Minimal configuration used by the test suite.
+
+[paths]
+figures = "TestFigures"
+reports = "TestReports"
+
+[paths.data_root]
+default = "/data/doses"
+"some-other-host" = '/other/host/data'
+
+[data]
+ids7_subfolder = "IDS7"
+dosetrack_subfolder = "DoseTrack - Serienivå"
+exposure_subfolder = "DoseTrack - Eksponeringsnivå"
+
+[room_aliases]
+LAB_A = ["LAB_A_IVUS", "LAB_A_OCT"]
+
+[analyses.cardiac]
+rooms = ["LAB_A", "LAB_B"]
+mapping = "pci"
+procedures = [
+    { name = "PCI", y_max = 100, drl_dap = 140.0 },
+    { name = "TAVI", y_max = 75 },
+]
+
+[analyses.children]
+rooms = ["LAB_C"]
+max_age = 18
+procedures = []

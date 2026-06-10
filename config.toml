@@ -1,0 +1,130 @@
+# Configuration for XA_DoseAnalysis.
+#
+# Everything that used to be hardcoded in the notebooks lives here:
+# data locations per machine, room-name standardization and the analyses
+# (room lists, mapping dictionary, procedures with plot limits and DRLs).
+
+[paths]
+figures = "Figures"   # output folder for plots, relative to this file
+reports = "Reports"   # output folder for Excel/text reports, relative to this file
+
+# Data root per machine. The key is the hostname (socket.gethostname());
+# "default" is used when the hostname is not listed.
+# Windows paths must use single quotes (TOML literal strings) so backslashes work.
+[paths.data_root]
+default = "/run/media/bhosteras/PRIVATE_USB/Intervensjon Doser"
+"BHs-Desktop" = 'E:\Intervensjon Doser'
+"BH-XPS" = 'G:\Intervensjon Doser'
+
+[data]
+ids7_subfolder = "IDS7"                            # <data_root>/IDS7/<year>/
+dosetrack_subfolder = "DoseTrack - Serienivå"      # procedure-level exports
+exposure_subfolder = "DoseTrack - Eksponeringsnivå"  # exposure-level exports
+
+# Room-name standardization: standard name = list of variants seen in the data.
+# Applied to both the IDS7 'Rom/modalitet (RIS)' and the DoseTrack 'Room' column.
+[room_aliases]
+KRH_XA3 = ["KRH_XA3_Coroventis", "KRH_XA3_IVUS", "KRH_XA3_OCT"]
+KRH_XA7 = ["KRH_XA7_Intrasight", "KRH_XA7_Coroventis", "KRH_XA7_IVUS", "KRH_XA7_OCT"]
+KRH_XA8 = ["KRH_XA8_Coroventis", "KRH_XA8_IVUS", "KRH_XA8_OCT"]
+KUL_XA1 = ["KUL_XA1_Coroventis", "KUL_XA1_IVUS", "KUL_XA1_OCT", "KUL_XA1_MacLab"]
+KUL_XA2 = ["KUL_XA2_IVUS", "KUL_XA2_OCT", "KUL_XA2_MacLab"]
+KUL_XA4 = ["KUL_XA4_IVUS", "KUL_XA4_OCT", "KUL_XA4_MacLab"]
+
+# ----------------------------------------------------------------------------
+# Analyses. Each [analyses.<name>] block defines:
+#   rooms      - rooms to include (omit for no room filter)
+#   mapping    - mapping dictionary name (see mapping.MAPPING_REGISTRY)
+#   max_age    - optional: keep only patients younger than this (years)
+#   procedures - procedures to plot/report:
+#       name    = mapped procedure name
+#       y_max   = y-axis limit for the boxplot (DAP, Gy*cm2)
+#       drl_dap = optional diagnostic reference level for DAP (Gy*cm2)
+#       drl_cak = optional diagnostic reference level for CAK (mGy)
+# ----------------------------------------------------------------------------
+
+[analyses.pci]
+rooms = ["IRH_XA6", "IRH_XA7", "KRH_XA3", "KRH_XA6", "KRH_XA7", "KRH_XA8", "KUL_XA1", "KUL_XA2", "KUL_XA4"]
+mapping = "pci"
+procedures = [
+    # Add drl_dap = <value> / drl_cak = <value> to compare against reference levels.
+    { name = "Coronary angiography", y_max = 50 },
+    { name = "PCI", y_max = 100 },
+    { name = "TAVI", y_max = 75 },
+    { name = "Mitraclip", y_max = 100 },
+    { name = "PTSMA", y_max = 100 },
+    { name = "PFO", y_max = 20 },
+]
+
+[analyses.elfys]
+rooms = ["KRH_Elfys1", "KRH_Elfys2", "KRH_Elfys3", "KRH_Elfys4", "KRH_Elfys5", "KRH_Elfys1062", "KRH_LAB39", "KRH_Lab13"]
+mapping = "elfys"
+procedures = [
+    { name = "RGA Cor Ablasjon SVT (int.) m og u 3D", y_max = 20 },
+    { name = "RGA Cor Ablasjon VT (int.) m 3D", y_max = 20 },
+    { name = "RGA Cor Ablasjon Atrieflimmer (int.) m og u 3D", y_max = 30 },
+    { name = "RGA Cor Pulsed field ablasjon (elektroporasjon) atrieflimmer", y_max = 20 },
+    { name = "RGA Cor Cryo Ablasjon Atrieflimmer (int.)", y_max = 40 },
+    { name = "RGA Cor Ablasjon Atrieflutter (int.) m og u 3D", y_max = 25 },
+    { name = "RGA Cor Elfys VT el. SVT (int.)", y_max = 10 },
+    { name = "RGA Cor CRT-D (int.) ink. CRT-P", y_max = 35 },
+    { name = "RGA Cor Implantasjon PM/ICD (int.) ink. 2k og 1k PM", y_max = 20 },
+    { name = "RGV Cor Biopsi", y_max = 20 },
+    { name = "RGV Cor Hø kat, måling av trykk og flow i lille kretsløp", y_max = 20 },
+    { name = "RGV Cor Høyre kat. Arytmi", y_max = 20 },
+]
+
+[analyses.radiology]
+rooms = [
+    "IRH_XA7", "RAK_XA1", "RRA_XA1", "RRH_RF1", "RRH_RF2", "RRH_XA1", "RRH_XA2", "RRH_XA4",
+    "RUL_RF1", "RUL_RF2", "RUL_RF3", "RUL_XA3", "RUL_XA5", "RUL_XA6", "RUL_XA7(Stue 15)",
+]
+mapping = "rad_xa"
+procedures = [
+    { name = "Caput Embolisering", y_max = 200 },
+    { name = "Trombektomi", y_max = 200 },
+    { name = "Caput og collum", y_max = 200 },
+    { name = "Myelografi", y_max = 175 },
+    { name = "Vertebroplastikk", y_max = 100 },
+    { name = "RG Columna eks. Myelografi og vertebroplastikk", y_max = 40 },
+    { name = "Cervical Nerverotsinjeksjon", y_max = 25 },
+    { name = "Cochlia", y_max = 10 },
+    { name = "Scoliose", y_max = 10 },
+    { name = "Shuntveier/Shuntventil", y_max = 35 },
+    { name = "Diafragmabevegelse", y_max = 20 },
+    { name = "HSG", y_max = 20 },
+    { name = "Svelgfunksjon", y_max = 20 },
+    { name = "Øsofagus/ØVD, eks. svelgfunksjon", y_max = 20 },
+    { name = "Nedleggelse av ventrikkelsonde", y_max = 20 },
+    { name = "Urethragrafi/Urografi/Urinveier/MUCG", y_max = 20 },
+    { name = "Defecografi", y_max = 20 },
+    { name = "Gastroskopi", y_max = 20 },
+    { name = "Videofluoroskopi", y_max = 20 },
+    { name = "Nefrostomi innleggelse", y_max = 20 },
+    { name = "Nefrostomi/Pyelografi skifte eller fjerning", y_max = 20 },
+    { name = "TACE", y_max = 200 },
+    { name = "PTC/PTBD/ERCP", y_max = 20 },
+    { name = "RG Galleblære u. PTC eller Galleveier", y_max = 20 },
+    { name = "BEVAR/FEVAR", y_max = 20 },
+    { name = "TEVAR", y_max = 20 },
+    { name = "EVAR", y_max = 20 },
+    { name = "Abdomen/Bekken/Aorta PTA/Embolisering/Stent/Stentgraft", y_max = 20 },
+    { name = "Milt/Nyrer", y_max = 20 },
+    { name = "RG Abdomen - Abscessografi, Fjerning/Skifte av dren", y_max = 20 },
+    { name = "Pulmonalarterier/PTA/Embolisering", y_max = 20 },
+    { name = "RGV Thorax", y_max = 20 },
+    { name = "Lymfangiografi", y_max = 20 },
+    { name = "Underex", y_max = 20 },
+    { name = "Overex", y_max = 20 },
+]
+
+[analyses.dsa]
+# No room filter: the DSA mapping covers all interventional rooms.
+mapping = "dsa"
+procedures = []
+
+[analyses.pediatric]
+rooms = ["RRH_XA5"]
+mapping = "ped_card"
+max_age = 18
+procedures = []
