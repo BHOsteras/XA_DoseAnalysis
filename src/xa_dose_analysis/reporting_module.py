@@ -162,3 +162,22 @@ def report_exposure_time_per_lab(data, ci = False):
         # 25 th percentile:
         ' IQR [' + lIQR_min + ':' + lIQR_sec + ' - ' + uIQR_min + ':' + uIQR_sec + '], ' + \
         'Range (' + lrange_min + ':' + lrange_sec + ' - '  + urange_min + ':' + urange_sec + ').')
+
+def report_dap_rate_per_lab(data, ci=False):
+    data = data.copy()
+    data = data[data['F+A Time (s)'].gt(0) & data['F+A Time (s)'].notna()]
+    data['DAP Rate (Gy*cm2/min)'] = data['DAP Total (Gy*cm2)'] / (data['F+A Time (s)'] / 60)
+    data = data.sort_values(by=['Modality Room'])
+
+    for lab in data['Modality Room'].unique():
+        lab_data = data[data['Modality Room'] == lab]['DAP Rate (Gy*cm2/min)']
+        if ci:
+            lci, uci = _calc_ci(lab_data)
+
+        print(lab + ': n = {:4}'.format(len(lab_data)) +
+              ', DAP rate: Median - ' + str(round(lab_data.median(), 2)) + ' (Gy*cm2/min),' +
+              (' 95% CI: [' + str(round(lci, 2)) + ' - ' + str(round(uci, 2)) + ']' if ci else '') +
+              ' IQR [' + str(round(lab_data.quantile(0.25), 2)) +
+              ' - ' + str(round(lab_data.quantile(0.75), 2)) + '], ' +
+              'Range (' + str(round(lab_data.min(), 2)) +
+              ' - ' + str(round(lab_data.max(), 2)) + ').')        

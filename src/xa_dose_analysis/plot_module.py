@@ -277,7 +277,66 @@ def plot_representative_dose(data, procedure, y_max=20, save=False):
         fig.savefig('Figures/' + procedure + '.png', bbox_inches='tight')
     return
 
+def plot_representative_dose_rate(data, procedure, y_max=5, save=False):
+    """
+    Sibling to plot_representative_dose.
+    Plots DAP rate (Gy*cm2/min) as a boxplot, one box per room.
+    DAP rate is computed as DAP Total divided by F+A time in minutes.
+    Rows where F+A Time is zero or missing are excluded.
+    """
 
+    data = data[data['Mapped Procedures'] == procedure].copy()
+    data = data[data['F+A Time (s)'].gt(0) & data['F+A Time (s)'].notna()]
+    data['DAP Rate (Gy*cm2/min)'] = data['DAP Total (Gy*cm2)'] / (data['F+A Time (s)'] / 60)
+    data = data.sort_values(by=['Modality Room'])
+    print('\n')
+    bh_report.report_dap_rate_per_lab(data[data['Mapped Procedures'] == procedure], True)
+
+    fig, ax = plt.subplots(figsize=(15, 10))
+    sns.boxplot(x='Modality Room', y='DAP Rate (Gy*cm2/min)', data=data, ax=ax)
+    print('Reporting DAP rate for ' + procedure + ':')
+    print('\n')
+
+    if y_max > 0:
+        ax.set_ylim([0, y_max])
+    else:
+        y_max = data['DAP Rate (Gy*cm2/min)'].max()
+
+    list_max = []
+    list_n_outside = []
+    for xtick in ax.get_xticklabels():
+        list_max.append(data[data['Modality Room'] == xtick.get_text()]['DAP Rate (Gy*cm2/min)'].max())
+        list_n_outside.append(data[data['Modality Room'] == xtick.get_text()]['DAP Rate (Gy*cm2/min)'].gt(y_max).sum())
+
+    for i, xtick in enumerate(ax.get_xticklabels()):
+        if list_max[i] > y_max:
+            ax.annotate('Maks = ' + str(round(list_max[i], 1)) + '\n' + 'n$_{(>'+ str(y_max) + ')}$ = ' + str(list_n_outside[i]),
+                        xy=(i, y_max), xytext=(i, y_max + y_max/20),
+                        ha='center', va='bottom', fontsize=12,
+                        arrowprops=dict(facecolor='black', shrink=0.05))
+
+    labels = []
+    for i, xtick in enumerate(ax.get_xticklabels()):
+        n_obs = len(data[data['Modality Room'] == xtick.get_text()])
+        labels.append(xtick.get_text() + '\n' + '(n = ' + str(n_obs) + ')')
+    _ = ax.set_xticklabels(labels)
+
+    _ = plt.suptitle(procedure + ' — DAP rate', fontsize=30, y=1.04)
+    _ = ax.set_xlabel('Lab')
+    _ = ax.set_ylabel('DAP rate (Gy*cm\u00b2/min)')
+    _ = ax.xaxis.label.set_size(30)
+    _ = ax.yaxis.label.set_size(30)
+    _ = ax.grid(True, linestyle=':', linewidth=0.5)
+    _ = ax.tick_params(labelsize=15)
+    print('-'*50)
+    print('\n')
+
+    if save:
+        if not os.path.exists('Figures'):
+            os.makedirs('Figures')
+        procedure_safe = procedure.replace('/', '-')
+        fig.savefig('Figures/' + procedure_safe + '_rate.png', bbox_inches='tight')
+    return
 
 # This function will delete all plots in the Figures folder.
 def delete_all_plots(delete_folder=False):
