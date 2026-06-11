@@ -1,0 +1,1 @@
+[] - Make funtionality for stratifying the trend by room, so we can follow protocol adjustments.
