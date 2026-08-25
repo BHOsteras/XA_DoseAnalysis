@@ -12,7 +12,7 @@ reports = "Reports"   # output folder for Excel/text reports, relative to this f
 # "default" is used when the hostname is not listed.
 # Windows paths must use single quotes (TOML literal strings) so backslashes work.
 [paths.data_root]
-default = "/run/media/bhosteras/PRIVATE_USB/Refaktor test"
+default = "/run/media/bhosteras/PRIVATE_USB/Intervensjon Doser"
 "BHs-Desktop" = 'E:\Intervensjon Doser'
 "BH-XPS" = 'G:\Intervensjon Doser'
 
