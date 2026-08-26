@@ -31,6 +31,11 @@ def test_data_root_uses_hostname_when_listed(cfg, monkeypatch):
     assert cfg.data_root == Path("/other/host/data")
 
 
+def test_data_root_env_var_overrides_config(cfg, monkeypatch):
+    monkeypatch.setenv(cfg_mod.DATA_ROOT_ENV_VAR, "/elsewhere/doses")
+    assert cfg.data_root == Path("/elsewhere/doses")
+
+
 def test_data_folders(cfg):
     assert cfg.ids7_folder(2025) == Path("/data/doses/IDS7/2025")
     assert cfg.dosetrack_folder("2024") == Path("/data/doses/DoseTrack - Serienivå/2024")

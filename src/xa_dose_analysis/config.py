@@ -6,12 +6,17 @@ and per-analysis settings (rooms, mapping dictionary, procedures to plot,
 optional diagnostic reference levels).
 """
 
+import os
 import socket
 import tomllib
 from dataclasses import dataclass, field
 from pathlib import Path
 
 CONFIG_FILENAME = "config.toml"
+
+# Environment override for the data root. Set this to point an analysis run at a
+# different folder than the one configured for the machine in config.toml.
+DATA_ROOT_ENV_VAR = "XA_DOSE_DATA_ROOT"
 
 
 @dataclass(frozen=True)
@@ -62,7 +67,13 @@ class Config:
 
     @property
     def data_root(self) -> Path:
-        """The data root folder for the current machine (by hostname)."""
+        """The data root folder for the current machine (by hostname).
+
+        ``XA_DOSE_DATA_ROOT`` overrides the configured roots when set.
+        """
+        override = os.environ.get(DATA_ROOT_ENV_VAR)
+        if override:
+            return Path(override)
         hostname = socket.gethostname()
         try:
             root = self.data_roots.get(hostname) or self.data_roots["default"]
