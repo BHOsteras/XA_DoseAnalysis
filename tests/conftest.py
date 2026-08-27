@@ -10,6 +10,15 @@ duplicate accession numbers on the same booking.
 import pandas as pd
 import pytest
 
+from xa_dose_analysis import config as cfg_mod
+
+
+@pytest.fixture(autouse=True)
+def _clear_data_root_env(monkeypatch):
+    """Ignore a data root override from the surrounding shell (see DATA_ROOT_ENV_VAR)."""
+    monkeypatch.delenv(cfg_mod.DATA_ROOT_ENV_VAR, raising=False)
+
+
 # Accession numbers used in the fixtures (16 characters, valid prefixes):
 ACC_NORMAL = "NKRH000000000001"  # in both datasets, two IDS7 description rows
 ACC_BIPLANE = "NRRH000000000002"  # two DoseTrack rows (biplane) + exposure rows
