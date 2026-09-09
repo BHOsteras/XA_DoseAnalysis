@@ -45,7 +45,7 @@ from .reporting import (
     print_summary,
     summary_by_procedure,
 )
-from .trends import plot_trend, trend_table
+from .trends import plot_trend, plot_trend_per_room, trend_table
 
 __all__ = [
     "DT",
@@ -76,6 +76,7 @@ __all__ = [
     "plot_representative_dose_by_procedure",
     "plot_representative_doses",
     "plot_trend",
+    "plot_trend_per_room",
     "print_summary",
     "read_excel_files",
     "select_analysis",

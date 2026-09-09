@@ -99,25 +99,71 @@ trends = [
     md(
         "# Dose trends over time\n"
         "\n"
-        "Median and IQR of DAP per month/quarter/year, per procedure.\n"
+        "Median and IQR of DAP per month/quarter/year, per procedure —\n"
+        "for all labs together and per lab.\n"
         "Reads all years under the data folders when `YEAR = None`."
     ),
     code(SETUP),
     code(
-        'ANALYSIS = "pci"\nYEAR = None  # None = all years in the data folders\nFREQ = "Q"  # "M", "Q" or "Y"'
+        "ANALYSIS = \"pci\"\n"
+        "YEAR = None  # None = all years in the data folders\n"
+        "FREQ = \"Q\"  # \"M\", \"Q\" or \"Y\"\n"
+        "PROCEDURE = \"PCI\"  # the procedure used by the per-lab cells below"
     ),
-    code("ds = xa.load_dataset(cfg, year=YEAR)\ndata = xa.select_analysis(ds, cfg, ANALYSIS)"),
+    code(
+        "ds = xa.load_dataset(cfg, year=YEAR)\n"
+        "data = xa.select_analysis(ds, cfg, ANALYSIS)"
+    ),
+    md(
+        "## All labs together"
+    ),
     code(
         "# Trend plot per configured procedure (with its DRL when configured):\n"
         "for procedure in cfg.analysis(ANALYSIS).procedures:\n"
-        "    xa.plot_trend(data, procedure.name, freq=FREQ, drl=procedure.drl_dap, save=False)"
+        "    xa.plot_trend(data, procedure.name, freq=FREQ, drl=procedure.drl_dap, save=False)\n"
+        "\n"
+        "# clip=False keeps the full range instead; y_max=... caps the axis by hand."
     ),
     code(
         "# The numbers behind one of the plots:\n"
-        "procedure = cfg.analysis(ANALYSIS).procedures[0].name\n"
-        "xa.trend_table(data, procedure, freq=FREQ)"
+        "xa.trend_table(data, PROCEDURE, freq=FREQ)"
     ),
-    code('# Per-room trends for one procedure:\nxa.trend_table(data, procedure, freq="Y", by_room=True)'),
+    md(
+        "## Per lab\n"
+        "\n"
+        "Two views of the same numbers for one procedure (`PROCEDURE` above):\n"
+        "\n"
+        "- **All labs in one plot** — one median line per lab, counts in the legend.\n"
+        "  No IQR bands: with several labs they overlap too much to read.\n"
+        "- **One plot per lab** — median and IQR as in the plots above, and the same\n"
+        "  y-axis on every figure so the labs can be compared by eye.\n"
+        "\n"
+        "A single extreme period no longer sets that shared y-axis for every lab: the\n"
+        "axis is capped just above the bulk of the data, and the periods running past\n"
+        "the cap are marked above it with their count and value (a filled triangle when\n"
+        "the median itself is outside, a hollow one when only the IQR band is)."
+    ),
+    code(
+        "# All labs in one plot, one median line per lab:\n"
+        "proc = cfg.analysis(ANALYSIS).procedure(PROCEDURE)\n"
+        "xa.plot_trend(data, proc.name, freq=FREQ, drl=proc.drl_dap, by_room=True, save=False)\n"
+        "\n"
+        "# For every configured procedure instead:\n"
+        "# for proc in cfg.analysis(ANALYSIS).procedures:\n"
+        "#     xa.plot_trend(data, proc.name, freq=FREQ, drl=proc.drl_dap, by_room=True, save=False)"
+    ),
+    code(
+        "# One plot per lab, each with median and IQR:\n"
+        "proc = cfg.analysis(ANALYSIS).procedure(PROCEDURE)\n"
+        "figures = xa.plot_trend_per_room(data, proc.name, freq=FREQ, drl=proc.drl_dap, save=False)\n"
+        "\n"
+        "# rooms=[...] limits which labs are plotted; share_y=False lets each figure autoscale.\n"
+        "# clip=False turns the capping off, so the tallest period sets the axis for all labs."
+    ),
+    code(
+        "# The numbers behind the per-lab plots:\n"
+        "xa.trend_table(data, PROCEDURE, freq=\"Y\", by_room=True)"
+    ),
 ]
 
 angle_heatmaps = [
